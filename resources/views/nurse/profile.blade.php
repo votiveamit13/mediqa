@@ -407,7 +407,20 @@ p.highlight-text {
                   @if(Auth::guard('nurse_middle')->user()->state)
                   <span class="card-location font-regular">{{ state_name(Auth::guard('nurse_middle')->user()->state) }} , {{ country_name(Auth::guard('nurse_middle')->user()->country) }}</span>
                   @endif
-                  <p class="mt-0 font-md color-text-paragraph-2 mb-15">{{ specialty_name_by_id(1) }}, 2 years</p>
+                  @php
+          $user_id = Auth::guard('nurse_middle')->user()->id;
+          $nurse_data = DB::table("profession_data")->where("user_id",$user_id)->get();
+
+          $nurse_name_arr = [];
+          foreach($nurse_data as $n_data){
+            $nurse_name = DB::table("practitioner_type")->where("id",$n_data->nurse_data)->first();
+            $nurse_name_arr['name'][] = $nurse_name->name;
+            $nurse_name_arr['experience'][] = $n_data->assistent_level;
+          }
+          
+          //print_r($nurse_name_arr['name'][0]);
+        @endphp
+        <p class="mt-0 font-md color-text-paragraph-2 mb-15">{{ $nurse_name_arr['name'][0] }} @if(!empty($nurse_name_arr['experience'][0])), {{ $nurse_name_arr['experience'][0] }} years @endif</p>
                 </div>
               </div>
               </div>
@@ -573,7 +586,7 @@ p.highlight-text {
             @if(!email_verified())
             <div class="container-fluid">
               <div class="alert alert-warning mt-2" role="alert">
-                <span class="d-flex align-items-center"><img src="{{ asset('nurse/assets/imgs/info.png') }}" width="25px;" alt="info" class="mx-2"> Thank you for signing up with us. To get full access, please verify your email first. If you didn't receive the email, <a href="javascript:void(0);" class="link-opacity-100 mx-1" style="color: black;text-decoration-line: underline;
+                <span class="d-flex align-items-center justify-content-center "><img src="{{ asset('nurse/assets/imgs/info.png') }}" width="25px;" alt="info" class="mx-2"> Thank you for signing up with us. To get full access, please verify your email first. If you didn't receive the email, <a href="javascript:void(0);" class="link-opacity-100 mx-1" style="color: black;text-decoration-line: underline;
                   text-decoration-style: straight;" onclick="return resendEmailLink()"><b> click here to resend it.</b></a></span>
               </div>
             </div>
@@ -581,7 +594,7 @@ p.highlight-text {
             @if(!account_verified())
             <div class="container-fluid">
               <div class="alert alert-warning mt-2" role="alert">
-                <span class="d-flex align-items-center"><img src="{{ asset('nurse/assets/imgs/info.png') }}" width="25px;" alt="info" class="mx-2">Thank you for verifying your email!<br>Please complete your profile, and once approved, you will be able to apply for jobs and make your profile visible.
+                <span class="d-flex align-items-center justify-content-center "><img src="{{ asset('nurse/assets/imgs/info.png') }}" width="25px;" alt="info" class="mx-2">Thank you for verifying your email!<br>Please complete your profile, and once approved, you will be able to apply for jobs and make your profile visible.
                 </span>
               </div>
             </div>
@@ -590,7 +603,7 @@ p.highlight-text {
             @if(!completeProfile())
             <div class="container-fluid">
               <div class="alert alert-warning mt-2" role="alert">
-                <span class="d-flex align-items-center"><img src="{{ asset('nurse/assets/imgs/info.png') }}" width="25px;" alt="info" class="mx-2">Thank you for completing your profile.<br>We are currently reviewing your details and will get in touch with you shortly.
+                <span class="d-flex align-items-center justify-content-center "><img src="{{ asset('nurse/assets/imgs/info.png') }}" width="25px;" alt="info" class="mx-2">Thank you for completing your profile.<br>We are currently reviewing your details and will get in touch with you shortly.
                 </span>
               </div>
             </div>
@@ -599,7 +612,7 @@ p.highlight-text {
             @if(!approvedProfile())
             <div class="container-fluid">
               <div class="alert alert-warning mt-2" role="alert">
-                <span class="d-flex align-items-center"><img src="{{ asset('nurse/assets/imgs/info.png') }}" width="25px;" alt="info" class="mx-2">Congratulations! Your profile has been successfully approved.<br>You can now apply for jobs, connect with employers, and receive interview requests.
+                <span class="d-flex align-items-center justify-content-center "><img src="{{ asset('nurse/assets/imgs/info.png') }}" width="25px;" alt="info" class="mx-2">Congratulations! Your profile has been successfully approved.<br>You can now apply for jobs, connect with employers, and receive interview requests.
                 </span>
               </div>
             </div>
@@ -1270,8 +1283,11 @@ p.highlight-text {
                       deleteAction = onConfirm;
 
                       document.getElementById('deleteConfirmText').innerHTML =
-                        `This specialty is used in <strong>${count}</strong> Experience entries.
-                        Deleting it will also delete those Experience entries.
+                        `This role is linked to 2 experiences. Deleting it will:-
+                        <ol start="1" style="margin-left: 20px;list-style-type: decimal;">
+                          <li>Permanently remove all related work experiences</li>
+                          <li>Keep any associated references, but they will no longer be linked</li>
+                        </ol>
                         <br><br>
                         <strong>This action cannot be undone.</strong> Are you sure?`;
 
@@ -1481,7 +1497,7 @@ p.highlight-text {
 
                         <select class="js-example-basic-multiple addAll_removeAll_btn nurse_type_field" data-list-id="type-of-nurse-0" name="nurseType[type_0][]" id="nurse_type" @if($btn_name != 'edit') multiple @endif onchange="getNurseType('main',0)"></select>
                         <div id="principalToggleContainer"></div>
-@php
+                        @php
 $hasPrincipalSpecialty = DB::table('profession_data')
     ->where('user_id', Auth::guard('nurse_middle')->user()->id)
     ->where('is_principal', 1)
@@ -1503,6 +1519,7 @@ function hasPrincipalSelected(currentCheckbox = null) {
 </script>
                         <span id="reqnurseTypeId" class="reqError text-danger valley"></span>    
                       </div>
+                      
                     
 
                       <div class="showNurseType-0">
@@ -1600,8 +1617,8 @@ function hasPrincipalSelected(currentCheckbox = null) {
                                                     <ul class="tooltip_speciality_status" style="padding-left:18px; margin:8px 0 0 0">
                                                       <li><strong>Status definitions:</strong></li>
                                                       <li><strong>Current:</strong> Actively practicing, used in present or most recent job.</li>
-                                                      <li><strong>Principal:</strong> Main/strongest specialty (only one allowed).</li>
-                                                      <li><strong>First:</strong> First-ever specialty after qualification.</li>
+                                                      <!-- <li><strong>Principal:</strong> Main/strongest specialty (only one allowed).</li>
+                                                      <li><strong>First:</strong> First-ever specialty after qualification.</li> -->
                                                       <li><strong>Former:</strong> Previously practiced.</li>
                                                       <li><strong>Upskilling / Transitioning / Training:</strong> Moving into this specialty.</li>
                                                       <li><strong>—</strong> (No status selected — default when nurse doesn’t pick one).</li>
@@ -2003,10 +2020,12 @@ function hasPrincipalSelected(currentCheckbox = null) {
                     </div>
                     <span id="reqdegree" class="reqError text-danger valley"></span>
                   </div>    -->
+
+                    
                     <div class="professional_bio">
                       <div class="form-group col-md-12">
                         <label class="font-sm color-text-mutted mb-10">Professional Bio</label>
-                         @php
+                        @php
                             $professionGlobal = DB::table('profession_data')
                                 ->where('user_id', Auth::guard('nurse_middle')->user()->id)
                                 ->first();
@@ -4109,7 +4128,7 @@ function hasPrincipalSelected(currentCheckbox = null) {
               <div class="tab-pane fade" id="tab-experience" role="tabpanel" aria-labelledby="tab-educert" style="display: none">
                 <div class="card shadow-sm border-0 p-4 mt-30">
                   <h3 class="mt-0 color-brand-1 mb-2">Experience</h3>
-                  <h6>Please add your full nursing work experience to strengthen your profile and get hired faster. Please keep update as your experience grows:</h6>
+                  <h6>Add your work history to strengthen your profile and keep update as your experience grows</h6>
                   <?php
                   $experienceData = DB::table("user_experience")->where("user_id", Auth::guard('nurse_middle')->user()->id)->get();
                   ?>
@@ -4126,9 +4145,12 @@ function hasPrincipalSelected(currentCheckbox = null) {
                       <?php
                       $i = 1;
                       ?>
-                      @if($experienceData->isNotEmpty())
-                      @foreach($experienceData as $data)
-                      <input type="hidden" name="exp_id[{{$i}}]" value="{{ $data->experience_id }}">
+                      @if($profession_data->isNotEmpty())
+                      @foreach($profession_data as $profession)
+                      @php
+                        $data = DB::table("user_experience")->where('experience_id',$profession->experience_id)->first();
+                      @endphp
+                      <input type="hidden" name="exp_id[{{$i}}]" value="@if(!empty($data)){{ $data->experience_id }}@endif">
                       <div class="work_exp exp_tab exp_tab-{{$i}}">
                         <h6 class="emergency_text previous_employeers_head">
                           Work Experience {{ $i }}
@@ -4139,7 +4161,13 @@ function hasPrincipalSelected(currentCheckbox = null) {
                           <?php
                             $user_id = Auth::guard('nurse_middle')->user()->id;
                             $workplace_data = DB::table('work_enviornment_preferences')->where("prefer_id","!=","444")->where("sub_env_id",0)->orderBy("env_name","asc")->get();
-                            $facility_type = (array)json_decode($data->facility_workplace_type);
+                            if(!empty($data)){
+                              $facility_type = (array)json_decode($data->facility_workplace_type);
+                            }else{
+                              $facility_type = [];
+                            }
+                            
+                           
 
                             //print_r($facility_type);
 
@@ -4156,7 +4184,7 @@ function hasPrincipalSelected(currentCheckbox = null) {
 
                             $p_memb_json = json_encode($p_memb_arr);
 
-                            $profession = DB::table("profession_data")->where('experience_id',$data->experience_id)->first();
+                            //$profession = DB::table("profession_data")->where('experience_id',$data->experience_id)->first();
                             
                           ?>
                           <input type="hidden" name="mainfactype" class="mainfactype mainfactype-{{ $i }}" value="{{ $p_memb_json }}">
@@ -4260,7 +4288,7 @@ function hasPrincipalSelected(currentCheckbox = null) {
                         </div>
                         <div class="form-group level-drp">
                           <label class="form-label" for="input-1">Facility / Workplace Name</label>
-                          <input type="text" name="facility_workplace_name[{{ $i }}]" class="form-control facworkname facworkname-{{ $i }}" value="{{ $data->facility_workplace_name }}">
+                          <input type="text" name="facility_workplace_name[{{ $i }}]" class="form-control facworkname facworkname-{{ $i }}" value="@if(!empty($data)){{ $data->facility_workplace_name }}@endif">
                           <span id="reqfaceworkname-{{$i}}" class="reqError text-danger valley"></span>
                         </div>
                         <div class="form-group drp--clr nurse_exp_type nurse_exp_type-{{ $i }}">
@@ -4302,7 +4330,7 @@ function hasPrincipalSelected(currentCheckbox = null) {
 
                               //print_r($parents1);
                             @endphp
-                            <input type="hidden" name="profession_experience_id[{{ $i }}]" value="{{ $profession->experience_id }}">
+                            <input type="hidden" name="profession_experience_id[{{ $i }}]" value="{{ $profession->profession_id }}">
                             <input type="hidden" name="level_name[{{ $i }}]" value="update">    
                             <input type="hidden" name="user_id" class="user_id" value="{{ Auth::guard('nurse_middle')->user()->id }}">
                             <input type="hidden" name="type_nurse" class="type_nurse_ep-{{ $i }}" value="{{ $mainnurse_json }}">
@@ -4588,19 +4616,19 @@ function hasPrincipalSelected(currentCheckbox = null) {
                                 </h6>
                                 <div class="form-group level-drp">
                                   <label class="form-label" for="input-1">Responsibilities</label>
-                                  <textarea class="form-control res-exp res-exp-{{ $i }}" name="job_responeblities[{{$i}}]">{{$data->responsiblities}}</textarea>
+                                  <textarea class="form-control res-exp res-exp-{{ $i }}" name="job_responeblities[{{$i}}]">@if(!empty($data)){{$data->responsiblities}}@endif</textarea>
                                   <span id="reqresposiblitiesexp-{{$i}}" class="reqError text-danger valley"></span>
                                 </div>
                                 <div class="form-group level-drp">
                                   <label class="form-label" for="input-1">Achievements</label>
-                                  <textarea class="form-control ach_exp ach_exp-{{ $i }}" name="achievements[{{$i}}]">{{$data->achievements}}</textarea>
+                                  <textarea class="form-control ach_exp ach_exp-{{ $i }}" name="achievements[{{$i}}]">@if(!empty($data)){{$data->achievements}}@endif</textarea>
                                   <span id="reqachievementsexp-{{ $i }}" class="reqError text-danger valley"></span>
                                 </div>
                                 <h6 class="emergency_text">
                             Areas of Expertise
                           </h6>
                           <div class="form-group level-drp">
-                            <input type="hidden" value="{{ $data->skills_compantancies }}" id="spe_skill_{{ $i }}">
+                            <input type="hidden" value="@if(!empty($data)){{ $data->skills_compantancies }}@endif" id="spe_skill_{{ $i }}">
                             <label class="form-label" for="input-1">Specific skills and competencies</label>
                             <?php
                             $skills = DB::table("skills")->where("parent_id", "1")->get();
@@ -4614,8 +4642,8 @@ function hasPrincipalSelected(currentCheckbox = null) {
                           </div>
                           <span id="reqexpertiseexp-{{ $i }}" class="reqError text-danger valley"></span>
 
-                          <div class="form-group level-drp @if($data->inter_and_em_skill == 'null') d-none @endif interpersonal_{{$i}} analy_skill_{{ $i }}8">
-                            <input type="hidden" value="{{ $data->inter_and_em_skill }}" id="inter_and_em_skill{{ $i }}">
+                          <div class="form-group level-drp @if(!empty($data)) @if($data->inter_and_em_skill == 'null') d-none @endif @else d-none @endif interpersonal_{{$i}} analy_skill_{{ $i }}8">
+                            <input type="hidden" value="@if(!empty($data)){{ $data->inter_and_em_skill }}@endif" id="inter_and_em_skill{{ $i }}">
                             <label class="form-label analy_skill_label-{{ $i }}8" for="input-1">Interpersonal and Emotional Skills</label>
                             <?php
                             $skills = DB::table("skills")->where("parent_id", "8")->get();
@@ -4631,8 +4659,8 @@ function hasPrincipalSelected(currentCheckbox = null) {
                           </div>
                           
 
-                          <div class="form-group level-drp @if($data->org_and_any_skill == 'null') d-none @endif analy_skill_{{$i}} analy_skill_{{ $i }}9">
-                            <input type="hidden" value="{{ $data->org_and_any_skill }}" id="org_and_any_skill{{ $i }}">
+                          <div class="form-group level-drp @if(!empty($data)) @if($data->org_and_any_skill == 'null') d-none @endif @else d-none @endif analy_skill_{{$i}} analy_skill_{{ $i }}9">
+                            <input type="hidden" value="@if(!empty($data)){{ $data->org_and_any_skill }}@endif" id="org_and_any_skill{{ $i }}">
                             <label class="form-label analy_skill_label-{{ $i }}9" for="input-1">Organizational and Analytical Skills</label>
                             <?php
                             $skills = DB::table("skills")->where("parent_id", "9")->get();
@@ -4648,8 +4676,8 @@ function hasPrincipalSelected(currentCheckbox = null) {
                           </div>
                           
 
-                          <div class="form-group level-drp @if($data->lead_and_ment_skill === 'null') d-none @endif leader_skill_{{$i}} analy_skill_{{$i}}10">
-                            <input type="hidden" value="{{ $data->lead_and_ment_skill }}" id="lead_and_ment_skill_{{ $i }}">
+                          <div class="form-group level-drp @if(!empty($data)) @if($data->lead_and_ment_skill == 'null') d-none @endif @else d-none @endif leader_skill_{{$i}} analy_skill_{{$i}}10">
+                            <input type="hidden" value="@if(!empty($data)){{ $data->lead_and_ment_skill }}@endif" id="lead_and_ment_skill_{{ $i }}">
                             <label class="form-label analy_skill_label-{{ $i }}10" for="input-1">Leadership and Mentorship Skills</label>
                             <?php
                             $skills = DB::table("skills")->where("parent_id", "10")->get();
@@ -4665,8 +4693,8 @@ function hasPrincipalSelected(currentCheckbox = null) {
                           </div>
                           
 
-                          <div class="form-group level-drp  @if($data->tech_and_soft_pro == 'null')  d-none @endif tech_skill_{{$i}} analy_skill_{{$i}}11">
-                            <input type="hidden" value="{{ $data->tech_and_soft_pro }}" id="tech_and_soft_pro_{{ $i }}">
+                          <div class="form-group level-drp  @if(!empty($data)) @if($data->tech_and_soft_pro == 'null') d-none @endif @else d-none @endif tech_skill_{{$i}} analy_skill_{{$i}}11">
+                            <input type="hidden" value="@if(!empty($data)){{ $data->tech_and_soft_pro }}@endif" id="tech_and_soft_pro_{{ $i }}">
                             <label class="form-label analy_skill_label-{{ $i }}11" for="input-1">Technology and Software Proficiency</label>
                             <?php
                             $skills = DB::table("skills")->where("parent_id", "11")->get();
@@ -4681,7 +4709,7 @@ function hasPrincipalSelected(currentCheckbox = null) {
                             <span id="reqanaskills-{{ $i }}11" class="reqError text-danger valley"></span>
                           </div>
                           <div class="form-group level-drp">
-                            <input type="hidden" value="{{ $data->evidence_type }}" id="evidence_type_{{ $i }}">
+                            <input type="hidden" value="@if(!empty($data)){{ $data->evidence_type }}@endif" id="evidence_type_{{ $i }}">
                             <label class="form-label" for="input-1">Type of evidence</label>
                             <?php
                             $skills = DB::table("skills")->get();
@@ -4699,11 +4727,11 @@ function hasPrincipalSelected(currentCheckbox = null) {
                           <div class="form-group level-drp">
                             <?php
                             $user_id = Auth::guard('nurse_middle')->user()->id;
-                            $getid = $data->experience_id;
+                            $getid = !empty($data)?$data->experience_id:0;
                             ?>
                             <label class="form-label" for="input-1">Upload evidence</label>
                             <input class="form-control upload_evidence-{{ $i }}" type="file" name="" onchange="changeExpEvidenceImg({{ Auth::guard('nurse_middle')->user()->id }},{{ $i }},{{ $getid }})" multiple="" id="{{ $i }}">
-                            <input type="hidden" class="old_files-{{ $i }}" name="upload_evidence[{{$i}}]" value="{{ $data->upload_evidence }}">
+                            <input type="hidden" class="old_files-{{ $i }}" name="upload_evidence[{{$i}}]" value="@if(!empty($data)){{ $data->upload_evidence }}@endif">
                             <div class="fileList  fileList_{{ $i }}">
                               @if(!empty($data) && ($data->upload_evidence))
                               <?php
@@ -4734,7 +4762,7 @@ function hasPrincipalSelected(currentCheckbox = null) {
                               <a
                                 style="cursor: pointer; margin-bottom: 35px !important;"
                                 class="delete-work-experience"
-                                data-index="{{$data->experience_id}}">
+                                data-index="@if(!empty($data)){{$data->experience_id}}@endif" data-item="{{ $profession->profession_id }}">
                                 - Delete Work Experience
                               </a>
                             </div>
@@ -6757,7 +6785,7 @@ function hasPrincipalSelected(currentCheckbox = null) {
                 @if(!account_verified())
 
                 <div class="alert alert-success mt-2" role="alert">
-                  <span class="d-flex align-items-center">Your profile is in under review, Generally, it takes 2-3 business days. Until you can not make chnages in your profile setting. </span>
+                  <span class="d-flex align-items-center justify-content-center ">Your profile is in under review, Generally, it takes 2-3 business days. Until you can not make chnages in your profile setting. </span>
                 </div>
                 @endif
                 @endif
@@ -9279,8 +9307,6 @@ $.each(specialityTree, function (parentKey, children) {
                                     <ul class="tooltip_speciality_status" style="padding-left:18px; margin:8px 0 0 0">
                                       <li><strong>Status definitions:</strong></li>
                                       <li><strong>Current:</strong> Actively practicing, used in present or most recent job.</li>
-                                      <li><strong>Principal:</strong> Main/strongest specialty (only one allowed).</li>
-                                      <li><strong>First:</strong> First-ever specialty after qualification.</li>
                                       <li><strong>Former:</strong> Previously practiced.</li>
                                       <li><strong>Upskilling / Transitioning / Training:</strong> Moving into this specialty.</li>
                                       <li><strong>—</strong> (No status selected — default when nurse doesn’t pick one).</li>
@@ -9294,23 +9320,23 @@ $.each(specialityTree, function (parentKey, children) {
                                     ${specialitystatus_text}
                                 </select>
                                 <span id="reqsubspecstatusvalid${nurse_id}-${data1.main_speciality_id}" class="reqError text-danger valley"></span>
-<div class="principal-toggle-card">
-    <div>
-        <p class="principal-title">Principal Specialty</p>
-        <p class="principal-subtext">Your main/strongest specialty</p>
-        <span class="principal-warning d-none">
-            This will replace your current Principal specialty
-        </span>
-    </div>
+                           <div class="principal-toggle-card">
+                                    <div>
+                                        <p class="principal-title">Principal Specialty</p>
+                                        <p class="principal-subtext">Your main/strongest specialty</p>
+                                        <span class="principal-warning d-none">
+                                            This will replace your current Principal specialty
+                                        </span>
+                                    </div>
 
-    <label class="switch">
-        <input type="checkbox"
-               class="principal-checkbox"
-               data-id="${data1.main_speciality_id}"
-               name="nurseType[${nurse_id}][principal][${data1.main_speciality_id}]">
-        <span class="slider"></span>
-    </label>
-</div>
+                                    <label class="switch">
+                                        <input type="checkbox"
+                                              class="principal-checkbox"
+                                              data-id="${data1.main_speciality_id}"
+                                              name="nurseType[${nurse_id}][principal][${data1.main_speciality_id}]">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
                                 </div>
                             <div class="custom-select-wrapper form-group level-drp">
                               <label class="form-label" for="input-1">What is your overall level of experience in nursing/midwifery?
@@ -12881,7 +12907,6 @@ $.each(specialityTree, function (parentKey, children) {
 
   // window.initAutocomplete = initAutocomplete;
 </script>
-
 <script>
 $(document).on('change', '.principal-checkbox', function () {
     const $cb = $(this);
