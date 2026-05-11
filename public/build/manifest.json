@@ -1,0 +1,26 @@
+{
+  "_pusher-81612e63.js": {
+    "file": "assets/pusher-81612e63.js"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-4ed993c7.js",
+    "isEntry": true,
+    "src": "resources/css/app.css"
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-a01b2292.js",
+    "imports": [
+      "_pusher-81612e63.js"
+    ],
+    "isEntry": true,
+    "src": "resources/js/app.js"
+  },
+  "resources/js/chat.js": {
+    "file": "assets/chat-6e07362a.js",
+    "imports": [
+      "_pusher-81612e63.js"
+    ],
+    "isEntry": true,
+    "src": "resources/js/chat.js"
+  }
+}
